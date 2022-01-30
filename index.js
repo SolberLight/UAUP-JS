@@ -124,8 +124,19 @@ function createDirectories(options) {
  * @returns {*} The Direct Download URL
  */
 async function GetUpdateURL(options) {
+    
+    const header = new Headers()
 
-    return fetch(git_api).then(response => response.json()).then(data => { json = data; }).catch(e => {
+    // eslint-disable-next-line
+    console.log(options.gitRepoToken)
+    header.append('Authorization', 'token ' + options.gitRepoToken)
+
+    const init = {
+        method: 'GET',
+        headers: header,
+    }
+
+    return fetch(git_api, init).then(response => response.json()).then(data => { json = data; }).catch(e => {
         try {
             // Electron
             alert(`Something went wrong: ${e}`);
@@ -314,11 +325,12 @@ function Download(url, path, options) {
  * Unzips the Downloaded Archive to the Application Directory
  * @param {defaultOptions} options
  */
-function Install(options) {
+async function Install(options) {
     updateHeader(options.stageTitles.Unzipping);
     var AdmZip = require('adm-zip');
     var zip = new AdmZip(`${options.tempDirectory}/${options.appName}.zip`);
 
+    await sleep(5000);
     zip.extractAllTo(options.appDirectory, true);
     setTimeout(() => CleanUp(options), 2000);
 }
