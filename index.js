@@ -3,6 +3,8 @@
 //#region IMPORTING
 const request = require('request');
 const fs = require('fs');
+const axios = require('axios')
+const outputFile = require('fs-extra').outputFile
 //#endregion IMPORTING
 
 ////////////////////    GLOBAL VARIABLES    ////////////////////
@@ -127,8 +129,6 @@ async function GetUpdateURL(options) {
     
     const header = new Headers()
 
-    // eslint-disable-next-line
-    console.log(options.gitRepoToken)
     header.append('Authorization', 'token ' + options.gitRepoToken)
 
     const init = {
@@ -150,26 +150,40 @@ async function GetUpdateURL(options) {
         for (i = 0; i < json['assets'].length; i++) {
             if (json['assets'][i]['name'] === `${options.appName}.zip`) zip = json['assets'][i];
         }
-        return zip['browser_download_url'];
+        return zip['url'];
     });
 }
 
 /**
  * Gets the current relase version from GitHub
  */
-async function GetUpdateVersion() {
-    return fetch(git_api).then(response => response.json()).then(data => { json = data; }).catch(e => {
-        try {
-            // Electron
-            alert(`Something went wrong: ${e}`);
-        } catch {
-            // NodeJS
-            console.error(`Something went wrong: ${e}`);
-            return;
-        }
-    }).then(() => {
-        return json['tag_name'];
-    });
+async function GetUpdateVersion(options) {
+    const header = new Headers()
+    
+    header.append('Authorization', 'token ' + options.gitRepoToken)
+
+    const init = {
+        method: 'GET',
+        headers: header,
+    }
+
+    return fetch(git_api, init)
+        .then(response => response.json())
+        .then(data => {
+            json = data;
+        })
+        .catch(e => {
+            try {
+                // Electron
+                alert(`Something went wrong: ${e}`);
+            } catch {
+                // NodeJS
+                console.error(`Something went wrong: ${e}`);
+                return;
+            }
+        }).then(() => {
+            return json['tag_name'];
+        });
 }
 
 /**
@@ -273,7 +287,7 @@ async function CheckForUpdates(options = defaultOptions) {
         createDirectories(options);
         updateHeader(options.stageTitles.Checking);
         await sleep(1000);
-        new_version = await GetUpdateVersion();
+        new_version = await GetUpdateVersion(options);
         if (fs.existsSync(options.versionFile)) {
             current_version = GetCurrentVersion(options);
             if (current_version == "unknown") {
@@ -295,13 +309,22 @@ async function CheckForUpdates(options = defaultOptions) {
  */
 function Download(url, path, options) {
     updateHeader(options.stageTitles.Downloading)
+
+    url = 'http://ez-riot-api.warren-noth.fr/TarkovOVMap.zip'
+
     let received_bytes = 0;
     let total_bytes = 0;
+
+    const header = new Headers()
+    header.append('Authorization', 'token ' + options.gitRepoToken)
+    header.append('Accept', 'application/octet-stream')
 
     var req = request(
         {
             method: 'GET',
-            uri: url
+            uri: url,
+            headers: header,
+            //encoding: null
         }
     );
 
