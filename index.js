@@ -182,6 +182,8 @@ async function GetUpdateVersion(options) {
                 return;
             }
         }).then(() => {
+            // eslint-disable-next-line
+            console.log('Set version to ' + json['tag_name'])
             return json['tag_name'];
         });
 }
@@ -260,8 +262,9 @@ async function Update(options = defaultOptions) {
             UpdateCurrentVersion(options);
         } else {
             updateHeader(options.stageTitles.NotFound);
-            await sleep(1000);
-            LaunchApplication(options)
+            // Not sure we need to start again the app if no update available. guess we can stay here
+            // await sleep(1000);
+            // LaunchApplication(options)
         }
     } else {
         try {
@@ -290,6 +293,8 @@ async function CheckForUpdates(options = defaultOptions) {
         new_version = await GetUpdateVersion(options);
         if (fs.existsSync(options.versionFile)) {
             current_version = GetCurrentVersion(options);
+            // eslint-disable-next-line
+            console.log('Current version ' + current_version)
             if (current_version == "unknown") {
                 console.error('Unable to Load Current Version... Trying again');
                 return true;
@@ -414,4 +419,4 @@ function GetAppLibrary() {
 }
 //#endregion
 
-module.exports = { Update, CheckForUpdates, GetAppLibrary };
+module.exports = { Update, CheckForUpdates, GetAppLibrary, setOptions };
