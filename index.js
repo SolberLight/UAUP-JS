@@ -419,4 +419,4 @@ function GetAppLibrary() {
 }
 //#endregion
 
-module.exports = { Update, CheckForUpdates, GetAppLibrary, setOptions };
+module.exports = { Update, CheckForUpdates, GetAppLibrary, setOptions, LaunchApplication };
